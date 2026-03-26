@@ -1,0 +1,29 @@
+name: calmiq-openenv
+description: AI mental wellness simulation environment
+
+version: 1.0
+
+actions:
+  action_type:
+    type: string
+    enum:
+      - meditate
+      - exercise
+      - journal
+      - sleep
+      - talk
+
+observations:
+  mood:
+    type: integer
+    range: [0, 10]
+  stress:
+    type: integer
+    range: [0, 10]
+  energy:
+    type: integer
+    range: [0, 10]
+
+reward:
+  type: continuous
+  range: [-5, 5]
