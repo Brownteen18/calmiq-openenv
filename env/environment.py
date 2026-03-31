@@ -46,6 +46,15 @@ class CalmIQEnv:
             self.state.mood += 1
             self.state.energy -= 1
 
+        # 🎲 ADD RANDOMNESS (REALISM)
+        noise = random.uniform(-0.3, 0.3)
+        self.state.mood += noise
+        self.state.stress += random.uniform(-0.2, 0.2)
+
+        # 📉 DIMINISHING RETURNS (PREVENT EASY MAXING)
+        if self.state.mood > 8:
+            self.state.mood -= 0.5
+
         # 🔥 FATIGUE PENALTY (REALISM)
         if self.state.energy <= 1:
             self.state.mood -= 1  # burnout effect
@@ -67,7 +76,6 @@ class CalmIQEnv:
         # 🔥 ANTI-OVER-OPTIMIZATION PENALTY
         if self.state.mood == 10 and self.state.stress == 0:
             reward -= 2.0
-            done = True
 
         # 🎯 TASK SCORE
         score = grade(self.state, self.state.task_type)
