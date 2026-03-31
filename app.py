@@ -7,7 +7,7 @@ app = FastAPI()
 env = CalmEnv()
 current_task = "easy"
 
-@app.post("/reset")
+@app.get("/reset")
 def reset(task: str = "easy"):
     global current_task
     current_task = task
