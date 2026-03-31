@@ -41,3 +41,10 @@ def baseline():
     import subprocess
     result = subprocess.check_output(["python", "baseline/run.py"])
     return {"result": result.decode()}
+
+@app.get("/")
+def home():
+    return {
+        "message": "CalmIQ OpenEnv is running 🚀",
+        "endpoints": ["/reset", "/step", "/tasks", "/grader", "/docs"]
+    }
