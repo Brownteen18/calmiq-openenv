@@ -1,23 +1,24 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
 from env.environment import CalmIQEnv
 from env.models import Action
 from env.tasks import get_tasks, grade
 
 app = FastAPI()
 env = CalmIQEnv()
-current_task = "easy"
 
-@app.get("/reset")
-def reset(task: str = "easy"):
-    global current_task
-    current_task = task
-    state = env.reset(task)
+class ResetRequest(BaseModel):
+    task: str = "easy"
+
+@app.post("/reset")
+def reset(req: ResetRequest):
+    state = env.reset(req.task)
     return {"state": state}
 
 @app.post("/step")
 def step(action: Action):
-    step_response = env.step(action)
-    return {"state": step_response.state, "reward": step_response.reward, "done": step_response.done}
+    env.step(action)
+    return {"state": env.state}
 
 @app.get("/state")
 def state():
@@ -34,7 +35,9 @@ def tasks():
 
 @app.get("/grader")
 def grader():
-    return {"score": grade(env.state, current_task)}
+    if env.state is None:
+        return {"score": 0}
+    return {"score": grade(env.state, env.state.task_type)}
 
 @app.get("/baseline")
 def baseline():

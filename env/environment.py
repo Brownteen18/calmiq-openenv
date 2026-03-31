@@ -7,7 +7,7 @@ class CalmIQEnv:
     def __init__(self):
         self.state: State | None = None
 
-    def reset(self, task: str = "easy"):
+    def reset(self, task="easy"):
         self.state = State(
             mood=random.randint(2, 5),
             stress=random.randint(5, 8),
@@ -48,12 +48,12 @@ class CalmIQEnv:
 
         # 🎲 ADD RANDOMNESS (REALISM)
         noise = random.uniform(-0.3, 0.3)
-        self.state.mood += noise
-        self.state.stress += random.uniform(-0.2, 0.2)
+        self.state.mood += int(noise)
+        self.state.stress += int(random.uniform(-0.2, 0.2))
 
         # 📉 DIMINISHING RETURNS (PREVENT EASY MAXING)
         if self.state.mood > 8:
-            self.state.mood -= 0.5
+            self.state.mood -= 1
 
         # 🔥 FATIGUE PENALTY (REALISM)
         if self.state.energy <= 1:
