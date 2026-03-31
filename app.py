@@ -1,7 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from pydantic import BaseModel
-
-# ✅ correct imports
+from typing import Optional
 from env.environment import CalmIQEnv
 from env.models import Action
 from env.tasks import get_tasks, grade
@@ -9,15 +8,15 @@ from env.tasks import get_tasks, grade
 app = FastAPI()
 env = CalmIQEnv()
 
-# ✅ Request model (THIS FIXES 422)
 class ResetRequest(BaseModel):
-    task: str = "easy"
+    task: Optional[str] = "easy"
 
-# ✅ Correct POST endpoint
 @app.post("/reset")
-def reset(req: ResetRequest):
-    state = env.reset(req.task)
-    return {"state": state} 
+def reset(req: Optional[ResetRequest] = None, task: str = Query(default="easy")):
+    # ✅ handle both body + query
+    task_type = req.task if req and req.task else task
+    state = env.reset(task_type)
+    return {"state": state}
 
 @app.post("/step")
 def step(action: Action):
