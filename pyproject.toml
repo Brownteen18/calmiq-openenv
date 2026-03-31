@@ -1,0 +1,15 @@
+[project]
+name = "calmiq_openenv"
+version = "0.1.0"
+description = "CalmIQ OpenEnv environment"
+authors = [
+    { name = "Sanjana Kumari" }
+]
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "pydantic"
+]
+
+[tool.setuptools]
+packages = ["env"]
