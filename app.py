@@ -1,10 +1,10 @@
 from fastapi import FastAPI
-from env.environment import CalmEnv
+from env.environment import CalmIQEnv
 from env.models import Action
 from env.tasks import get_tasks, grade
 
 app = FastAPI()
-env = CalmEnv()
+env = CalmIQEnv()
 current_task = "easy"
 
 @app.get("/reset")
@@ -16,8 +16,8 @@ def reset(task: str = "easy"):
 
 @app.post("/step")
 def step(action: Action):
-    state, reward, done = env.step(action)
-    return {"state": state, "reward": reward, "done": done}
+    step_response = env.step(action)
+    return {"state": step_response.state, "reward": step_response.reward, "done": step_response.done}
 
 @app.get("/state")
 def state():

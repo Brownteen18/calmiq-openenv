@@ -1,7 +1,7 @@
 import requests
 import os
 
-API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:7860")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:7861")
 MODEL_NAME = os.getenv("MODEL_NAME", "dummy")
 HF_TOKEN = os.getenv("HF_TOKEN", "dummy")
 
@@ -10,7 +10,7 @@ ACTIONS = ["meditate", "exercise", "journal", "sleep", "talk"]
 
 def run_task(task_name):
     # Reset environment
-    requests.get(f"{API_BASE_URL}/reset")
+    requests.get(f"{API_BASE_URL}/reset", params={"task": task_name})
 
     total_reward = 0
 
@@ -33,4 +33,4 @@ if __name__ == "__main__":
 
     for t in tasks:
         score = run_task(t)
-        print(f"Task: {t} → Score: {score:.2f}")
+        print(f"Task: {t} -> Score: {score:.2f}")

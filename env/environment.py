@@ -1,116 +1,85 @@
-from typing import Optional
+from env.models import State, Action, StepResponse
+from env.tasks import grade
 import random
-from .models import State
 
-class CalmEnv:
+
+class CalmIQEnv:
     def __init__(self):
-        self.state: Optional[State] = None
-        self.last_action = None
-        self.history = []
-        self.personality = None
+        self.state: State | None = None
 
-    def reset(self, task_type="easy"):
-        self.personality = random.choice(["anxious", "calm", "energetic"])
-        self.history = []
-        self.last_action = None
-
+    def reset(self, task: str = "easy"):
         self.state = State(
             mood=random.randint(2, 5),
             stress=random.randint(5, 8),
             energy=random.randint(3, 6),
             step_count=0,
-            task_type=task_type
+            task_type=task
         )
         return self.state
 
-    def step(self, action):
-        # ✅ FIX: ensure state is initialized
+    def step(self, action: Action):
+        # 🔒 Safety check (fixes your error)
         if self.state is None:
             raise ValueError("Environment not initialized. Call reset() first.")
 
-        old_state: State = self.state  # ✅ proper typing
+        self.state.step_count += 1
 
-        mood = old_state.mood
-        stress = old_state.stress
-        energy = old_state.energy
-
-        # 🌍 Random events
-        event = random.choice(["none", "bad_news", "good_news"])
-        if event == "bad_news":
-            stress += 2
-            mood -= 1
-        elif event == "good_news":
-            mood += 2
-
-        # 🎯 Actions
+        # 🎯 ACTION LOGIC
         if action.action_type == "meditate":
-            stress -= 2
-            mood += 1
+            self.state.mood += 1
+            self.state.stress -= 2
+            self.state.energy -= 1
 
         elif action.action_type == "exercise":
-            stress -= 1
-            mood += 2
-            energy -= 1
+            self.state.mood += 2
+            self.state.stress -= 1
+            self.state.energy -= 2
 
         elif action.action_type == "journal":
-            mood += 1
+            self.state.mood += 1
+            self.state.stress -= 1
 
         elif action.action_type == "sleep":
-            energy += 2
-            stress -= 1
+            self.state.energy += 3
+            self.state.stress -= 1
 
         elif action.action_type == "talk":
-            mood += 2
-            stress -= 1
+            self.state.mood += 2
+            self.state.energy -= 1
 
-        # 🧠 Personality
-        if self.personality == "anxious":
-            stress += 1
-        elif self.personality == "energetic":
-            energy += 1
+        # 🔒 CLAMP VALUES (fix overflow issues)
+        self.state.mood = max(0, min(self.state.mood, 10))
+        self.state.stress = max(0, min(self.state.stress, 10))
+        self.state.energy = max(0, min(self.state.energy, 10))
 
-        # 🔒 Clamp
-        mood = max(0, min(10, mood))
-        stress = max(0, min(10, stress))
-        energy = max(0, min(10, energy))
-
-        # 🔥 Reward
+        # 🎯 REWARD FUNCTION
         reward = 0
-        reward += (mood - old_state.mood) * 1.5
-        reward += (old_state.stress - stress) * 2.0
-        reward += (energy - old_state.energy) * 0.5
+        reward += self.state.mood * 0.2
+        reward += (10 - self.state.stress) * 0.2
+        reward += self.state.energy * 0.1
 
-        # 🚫 Repeat penalty
-        if action.action_type == self.last_action:
-            reward -= 0.5
+        # small penalty per step
+        reward -= 0.1
 
-        # ⭐ WOW factor (memory)
-        self.history.append(action.action_type)
-        if self.history.count(action.action_type) > 3:
-            reward -= 1.0
+        # 🎯 TASK SCORE
+        score = grade(self.state, self.state.task_type)
 
-        # 🚫 High stress penalty
-        if stress > 8:
-            reward -= 1.0
+        done = False
+        if self.state.step_count >= 10:
+            done = True
 
-        # 🎉 Bonus
-        if mood >= 8 and stress <= 3:
-            reward += 3.0
-
-        self.last_action = action.action_type
-
-        # ✅ Update state
-        self.state = State(
-            mood=mood,
-            stress=stress,
-            energy=energy,
-            step_count=old_state.step_count + 1,
-            task_type=old_state.task_type
+        # 🔥 DEBUG LOG
+        print(
+            f"[STEP {self.state.step_count}] Action: {action.action_type}, "
+            f"Mood: {self.state.mood}, Stress: {self.state.stress}, "
+            f"Energy: {self.state.energy}, Reward: {reward:.2f}"
         )
 
-        done = self.state.step_count >= 10 or mood >= 8
+        return StepResponse(
+            state=self.state,
+            reward=reward,
+            done=done
+        )
 
-        # 📊 Logging
-        print(f"[STEP {self.state.step_count}] Action: {action.action_type}, Mood: {mood}, Stress: {stress}, Reward: {reward:.2f}")
-
-        return self.state, reward, done
+    def get_state(self):
+        return self.state
