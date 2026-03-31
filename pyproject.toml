@@ -5,11 +5,16 @@ description = "CalmIQ OpenEnv environment"
 authors = [
     { name = "Sanjana Kumari" }
 ]
+
 dependencies = [
     "fastapi",
     "uvicorn",
-    "pydantic"
+    "pydantic",
+    "openenv-core>=0.2.0"
 ]
 
+[project.scripts]
+server = "server.app:app"
+
 [tool.setuptools]
-packages = ["env"]
+packages = ["env", "server"]
