@@ -43,6 +43,13 @@ def grader():
         return {"score": 0}
     return {"score": grade(env.state, env.state.task_type)}
 
+@app.get("/")
+def home():
+    return {
+        "message": "CalmIQ OpenEnv is running 🚀",
+        "endpoints": ["/reset", "/step", "/tasks", "/grader", "/docs"]
+    }
+
 
 # ✅ REQUIRED FOR OPENENV
 def main():
