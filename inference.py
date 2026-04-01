@@ -1,5 +1,12 @@
 import requests
 import os
+from openai import OpenAI
+
+client = OpenAI()
+
+API_BASE_URL = os.getenv("API_BASE_URL")
+MODEL_NAME = os.getenv("MODEL_NAME")
+HF_TOKEN = os.getenv("HF_TOKEN")
 
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:7861")
 MODEL_NAME = os.getenv("MODEL_NAME", "dummy")
