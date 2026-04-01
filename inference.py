@@ -10,7 +10,10 @@ ACTIONS = ["meditate", "exercise", "journal", "sleep", "talk"]
 
 def run_task(task_name):
     # Reset environment
-    requests.get(f"{API_BASE_URL}/reset", params={"task": task_name})
+    requests.post(
+    f"{API_BASE_URL}/reset",
+    json={"task": task_name}
+)
 
     total_reward = 0
 
