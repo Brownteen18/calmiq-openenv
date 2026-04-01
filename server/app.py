@@ -1,9 +1,11 @@
 from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import Optional
+import uvicorn
+
 from env.environment import CalmIQEnv
 from env.models import Action
 from env.tasks import get_tasks, grade
-from pydantic import BaseModel
-from typing import Optional
 
 app = FastAPI()
 env = CalmIQEnv()
@@ -40,3 +42,13 @@ def grader():
     if env.state is None:
         return {"score": 0}
     return {"score": grade(env.state, env.state.task_type)}
+
+
+# ✅ REQUIRED FOR OPENENV
+def main():
+    uvicorn.run("server.app:app", host="0.0.0.0", port=7860)
+
+
+# ✅ REQUIRED ENTRY POINT
+if __name__ == "__main__":
+    main()
