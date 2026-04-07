@@ -50,7 +50,6 @@ def home():
         "endpoints": ["/reset", "/step", "/tasks", "/grader", "/docs"]
     }
 
-
 # ✅ REQUIRED FOR OPENENV
 def main():
     uvicorn.run("server.app:app", host="0.0.0.0", port=7860)
