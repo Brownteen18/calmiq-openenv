@@ -1,3 +1,12 @@
+import os
+import uvicorn
+
+from server.app import app
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", "7860"))
+    uvicorn.run("server.app:app", host="0.0.0.0", port=port)
+<<<<<<< HEAD
 import requests
 import os
 from openai import OpenAI
@@ -65,3 +74,14 @@ if __name__ == "__main__":
     for t in tasks:
         score = run_task(t)
         print(f"Task: {t} -> Score: {score:.2f}")
+=======
+import os
+import uvicorn
+
+from server.app import app
+
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", "7860"))
+    uvicorn.run("server.app:app", host="0.0.0.0", port=port)
+
+>>>>>>> d57d56c (Fix HF entrypoint by running uvicorn from inference launcher.)
