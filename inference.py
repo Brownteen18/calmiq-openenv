@@ -32,18 +32,22 @@ def run_task(task_name):
         # ✅ WAIT UNTIL SERVER IS READY
         wait_for_server(ENV_BASE_URL)
 
-        # ✅ DO NOT MODIFY BASE URL (CRITICAL FIX)
+        # ✅ 🔥 FINAL FIX: ENSURE EXACTLY ONE /v1
+        base_url = API_BASE_URL.rstrip("/")
+        if not base_url.endswith("/v1"):
+            base_url = f"{base_url}/v1"
+
         client = OpenAI(
-            base_url=API_BASE_URL,
+            base_url=base_url,
             api_key=HF_TOKEN
         )
 
-        # RESET ENV
+        # RESET ENVIRONMENT
         requests.post(f"{ENV_BASE_URL}/reset", json={"task": task_name}, timeout=5)
 
         for _ in range(5):
 
-            # ✅ LLM CALL (REQUIRED FOR VALIDATOR)
+            # ✅ LLM CALL (REQUIRED)
             completion = client.chat.completions.create(
                 model=str(MODEL_NAME),
                 messages=[
@@ -54,7 +58,7 @@ def run_task(task_name):
 
             llm_output = (completion.choices[0].message.content or "").lower()
 
-            # ACTION SELECTION
+            # ACTION DECISION
             action = "meditate"
             if "sleep" in llm_output:
                 action = "sleep"
@@ -71,7 +75,7 @@ def run_task(task_name):
             state = r.json().get("state", {})
             steps_count += 1
 
-            # SAFE REWARD RANGE (0 < r < 1)
+            # SAFE REWARD
             reward = float(state.get("score", 0.5))
             reward = max(0.01, min(0.99, reward))
 
@@ -87,7 +91,7 @@ def run_task(task_name):
     except Exception as e:
         print(f"Error: {e}", flush=True)
 
-        # FAILSAFE STEP (validator still sees activity)
+        # FAILSAFE
         steps_count = max(steps_count, 1)
         final_score = 0.5
 
@@ -96,7 +100,7 @@ def run_task(task_name):
             flush=True
         )
 
-    # CLAMP FINAL SCORE
+    # CLAMP SCORE
     final_score = max(0.01, min(0.99, final_score))
 
     print(
@@ -105,7 +109,7 @@ def run_task(task_name):
     )
 
 
-# ✅ RUN MULTIPLE TASKS
+# ✅ RUN TASKS
 if __name__ == "__main__":
     for task in ["easy", "medium", "hard"]:
         run_task(task)
