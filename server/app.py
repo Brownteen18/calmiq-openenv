@@ -2,6 +2,7 @@ import os
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from openai import OpenAI
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -24,9 +25,52 @@ except Exception as e:
     client_init_error = str(e)
     print(f"OpenAI client init failed: {client_init_error}", flush=True)
 
+
+class StepAction(BaseModel):
+    action_type: str = "meditate"
+
+
+_env_state = {
+    "task": "easy",
+    "steps": 0,
+    "score": 0.5,
+}
+
 @app.get("/")
 def root():
     return {"message": "Server is running successfully 🚀"}
+
+
+@app.post("/reset")
+async def reset(request: Request):
+    body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else {}
+    _env_state["task"] = body.get("task", "easy")
+    _env_state["steps"] = 0
+    _env_state["score"] = 0.5
+    return {"status": "reset done", "task": _env_state["task"]}
+
+
+@app.post("/step")
+async def step(action: StepAction):
+    _env_state["steps"] += 1
+    reward = 1.0 if action.action_type in {"meditate", "sleep", "exercise"} else 0.5
+    _env_state["score"] = min(0.99, _env_state["score"] + 0.05 * reward)
+    done = _env_state["steps"] >= 10
+    return {
+        "reward": reward,
+        "done": done,
+        "state": {
+            "mood": "calm",
+            "stress": max(0, 10 - _env_state["steps"]),
+            "energy": min(10, 5 + _env_state["steps"] // 2),
+            "score": _env_state["score"],
+        },
+    }
+
+
+@app.get("/grader")
+def grader():
+    return {"score": _env_state["score"], "steps": _env_state["steps"], "task": _env_state["task"]}
 
 @app.post("/v1/chat/completions")
 async def chat_completions(request: Request):
