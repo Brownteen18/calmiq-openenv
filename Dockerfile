@@ -1,10 +1,19 @@
-FROM python:3.10
+FROM python:3.10-slim
 
+# Set working directory
 WORKDIR /app
-COPY . .
 
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy files
+COPY . /app
 
+# Install dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Expose port (for FastAPI env if needed)
 EXPOSE 7860
 
-CMD ["uvicorn", "server.app:app", "--host", "0.0.0.0", "--port", "7860"]
+# 🚨 DO NOT HARDCODE ENV VARIABLES HERE
+
+# Run inference
+CMD ["python", "inference.py"]
