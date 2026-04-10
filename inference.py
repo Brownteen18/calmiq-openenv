@@ -1,35 +1,44 @@
 import os
 import json
 import requests
+import time
 from openai import OpenAI
 
 # 1. Use defaults to ensure these are always 'str', never 'None'
 API_BASE_URL = os.getenv("API_BASE_URL", "http://127.0.0.1:7861")
 MODEL_NAME = os.getenv("MODEL_NAME", "gpt-5.4-mini") 
 HF_TOKEN = os.getenv("HF_TOKEN", "no-token-provided")
+ENV_BASE_URL = "http://localhost:7860"
+
+def wait_for_server(timeout=30):
+    """Wait for the FastAPI server to be ready before starting tasks."""
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        try:
+            # Try to hit the health check or reset endpoint
+            response = requests.get(f"{ENV_BASE_URL}/reset", params={"task": "easy"}, timeout=2)
+            if response.status_code == 200:
+                print(f"Connected to environment server at {ENV_BASE_URL}", flush=True)
+                return True
+        except requests.exceptions.ConnectionError:
+            time.sleep(1)
+    return False
 
 def run_task(task_name):
-    ENV_BASE_URL = "http://localhost:7860"
     steps_count = 0
-    
     print(f"[START] {json.dumps({'task': task_name, 'model': MODEL_NAME})}", flush=True)
 
     try:
-        # 2. Fix the "in" operator error by using the guaranteed string API_BASE_URL
-        # We check if /v1 is already there to avoid double-suffixing
         base_url = API_BASE_URL
         if "/v1" not in base_url:
             base_url = f"{base_url.rstrip('/')}/v1"
 
-        client = OpenAI(
-            base_url=base_url,
-            api_key=HF_TOKEN
-        )
+        client = OpenAI(base_url=base_url, api_key=HF_TOKEN)
         
+        # Reset environment
         requests.post(f"{ENV_BASE_URL}/reset", json={"task": task_name}, timeout=5)
 
         for i in range(5):
-            # 3. MODEL_NAME is now guaranteed to be a string
             completion = client.chat.completions.create(
                 model=MODEL_NAME,
                 messages=[{"role": "user", "content": "Pick: meditate, exercise, or sleep."}],
@@ -38,7 +47,6 @@ def run_task(task_name):
             
             llm_decision = (completion.choices[0].message.content or "meditate").lower()
             
-            # Action Mapping
             selected_action = "meditate"
             if "sleep" in llm_decision:
                 selected_action = "sleep"
@@ -49,7 +57,6 @@ def run_task(task_name):
             state = r.json().get("state", {})
             steps_count += 1
             
-            # Ensure score is strictly 0 < s < 1
             raw_reward = float(state.get("score", 0.5))
             safe_reward = max(0.01, min(0.99, raw_reward))
             
@@ -59,7 +66,7 @@ def run_task(task_name):
         final_score = float(g.json().get("score", 0.5))
 
     except Exception as e:
-        print(f"Error: {e}") # Helpful for local debugging
+        print(f"Error: {e}", flush=True)
         final_score = 0.5
         steps_count = max(steps_count, 1)
 
@@ -67,5 +74,9 @@ def run_task(task_name):
     print(f"[END] {json.dumps({'task': task_name, 'score': clamped_score, 'steps': steps_count})}", flush=True)
 
 if __name__ == "__main__":
-    for t in ["easy", "medium", "hard"]:
-        run_task(t)
+    # Wait for the background server to start
+    if wait_for_server():
+        for t in ["easy", "medium", "hard"]:
+            run_task(t)
+    else:
+        print("Failed to connect to the environment server.", flush=True)
