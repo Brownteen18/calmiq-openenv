@@ -10,5 +10,5 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 EXPOSE 7860
 
-# ✅ BETTER PROCESS HANDLING
-CMD ["sh", "-c", "uvicorn server.app:app --host 0.0.0.0 --port 7860 & sleep 5 && python inference.py"]
+# Start API server (HF-compatible entrypoint)
+CMD ["python", "/app/inference.py"]

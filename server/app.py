@@ -10,11 +10,19 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "dummy")
 OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.4-mini")
 
-# Create OpenAI client safely
-client = OpenAI(
-    api_key=OPENAI_API_KEY,
-    base_url=OPENAI_BASE_URL if OPENAI_BASE_URL else None
-)
+client = None
+client_init_error = None
+
+try:
+    # Create OpenAI client safely
+    client = OpenAI(
+        api_key=OPENAI_API_KEY,
+        base_url=OPENAI_BASE_URL if OPENAI_BASE_URL else None
+    )
+except Exception as e:
+    # Keep API booting even if OpenAI client cannot initialize.
+    client_init_error = str(e)
+    print(f"OpenAI client init failed: {client_init_error}", flush=True)
 
 @app.get("/")
 def root():
@@ -27,6 +35,11 @@ async def chat_completions(request: Request):
 
         messages = body.get("messages", [])
         model = body.get("model", OPENAI_MODEL)
+
+        if client is None:
+            raise RuntimeError(
+                f"OpenAI client unavailable: {client_init_error or 'unknown error'}"
+            )
 
         # Call LLM
         response = client.chat.completions.create(
