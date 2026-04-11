@@ -121,7 +121,9 @@ async def chat_completions(request: Request):
 
 def main():
     port = int(os.getenv("PORT", "7860"))
-    uvicorn.run("server.app:app", host="0.0.0.0", port=port)
+    # Pass the app object so uvicorn does not spawn an extra import worker that
+    # races for the same port (observed on Windows with the "server.app:app" string).
+    uvicorn.run(app, host="0.0.0.0", port=port)
 
 
 if __name__ == "__main__":
