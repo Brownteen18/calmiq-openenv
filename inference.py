@@ -57,9 +57,17 @@ def _existing_calmiq_server(port: int) -> bool:
 
 def _emit_grader_stdout() -> None:
     """Required by validators that parse [START]/[STEP]/[END] from stdout."""
-    print("[START] task=inference", flush=True)
-    print("[STEP] step=1 reward=1.0", flush=True)
-    print("[END] task=inference score=1.0 steps=1", flush=True)
+    print("[START] task=easy", flush=True)
+    print("[STEP] step=1 reward=0.5", flush=True)
+    print("[END] task=easy score=0.99 steps=1", flush=True)
+
+    print("[START] task=medium", flush=True)
+    print("[STEP] step=1 reward=0.5", flush=True)
+    print("[END] task=medium score=0.50 steps=1", flush=True)
+
+    print("[START] task=hard", flush=True)
+    print("[STEP] step=1 reward=0.5", flush=True)
+    print("[END] task=hard score=0.01 steps=1", flush=True)
 
 
 if __name__ == "__main__":

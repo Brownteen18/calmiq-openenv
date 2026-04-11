@@ -51,4 +51,4 @@ def grade(state, task):
         else:
             score = 0
 
-    return min(max(score, 0), 1.0)
+    return min(max(score, 0.01), 0.99)
