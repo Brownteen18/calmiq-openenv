@@ -8,8 +8,8 @@ import uvicorn
 app = FastAPI()
 
 # Environment variables (safe defaults)
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "dummy")
-OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL")
+API_KEY = os.getenv("API_KEY", os.getenv("OPENAI_API_KEY", "dummy"))
+API_BASE_URL = os.getenv("API_BASE_URL", os.getenv("OPENAI_BASE_URL"))
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.4-mini")
 
 client = None
@@ -18,8 +18,8 @@ client_init_error = None
 try:
     # Create OpenAI client safely
     client = OpenAI(
-        api_key=OPENAI_API_KEY,
-        base_url=OPENAI_BASE_URL if OPENAI_BASE_URL else None
+        api_key=API_KEY,
+        base_url=API_BASE_URL if API_BASE_URL else None
     )
 except Exception as e:
     # Keep API booting even if OpenAI client cannot initialize.
