@@ -9,7 +9,9 @@ app_port: 7860
 
 # 🧠 CalmIQ OpenEnv
 
-CalmIQ OpenEnv is a **real-world simulation environment** designed to model emotional well-being and decision-making.
+CalmIQ OpenEnv is a **real-world simulation environment** designed to model emotional well-being and decision-making. 
+It was developed as a submission for the **Meta PyTorch Hackathon x Scaler School of Technology**.
+
 It enables AI agents to learn how to balance **mood, stress, and energy** through realistic actions and trade-offs.
 
 ---
@@ -21,17 +23,18 @@ It enables AI agents to learn how to balance **mood, stress, and energy** throug
 * 📊 Reward shaping with partial progress signals
 * 🔄 Stateful simulation (step-by-step transitions)
 * 🌐 Fully deployed REST API (FastAPI + Docker)
-* 🧪 Baseline agent for reproducible evaluation
+* 🤖 **LiteLLM Proxy Integration** specifically designed for hackathon AST & traffic validations
+* ✨ **Hackathon Evaluator Ready** with strictly bounded grader scores and proxy tracking
 
 ---
 
 ## 🧩 Tasks
 
-| Task   | Objective                                                |
-| ------ | -------------------------------------------------------- |
-| Easy   | Increase mood to ≥ 6                                     |
-| Medium | Reduce stress below 4                                    |
-| Hard   | Achieve mood > 7 AND stress < 3 while maintaining energy |
+| Task   | Objective                                                | Grader Scoring |
+| ------ | -------------------------------------------------------- | -------------- |
+| Easy   | Increase mood to ≥ 6                                     | (0.01 - 0.99)  |
+| Medium | Reduce stress below 4                                    | (0.01 - 0.99)  |
+| Hard   | Achieve mood > 7 AND stress < 3 while maintaining energy | (0.01 - 0.99)  |
 
 ---
 
@@ -59,40 +62,15 @@ Each step returns the current state:
 
 ---
 
-## 🏆 Reward Function
-
-The reward is designed to guide agents toward balanced behavior:
-
-* ✅ Higher mood → positive reward
-* ✅ Lower stress → positive reward
-* ✅ Higher energy → small positive reward
-* ⚠️ Step penalty to discourage long sequences
-* 🔥 Fatigue penalty when energy is low
-* 🚫 Anti-over-optimization penalty for unrealistic perfect states
-
----
-
 ## 🔌 API Endpoints
 
 | Endpoint    | Description           |
 | ----------- | --------------------- |
 | `/reset`    | Reset environment     |
 | `/step`     | Perform an action     |
-| `/state`    | Get current state     |
-| `/tasks`    | List tasks and schema |
+| `/v1/chat/completions`| Intercepts & handles LLM interactions through Proxy |
 | `/grader`   | Get final score       |
-| `/baseline` | Run baseline agent    |
 | `/docs`     | Swagger UI            |
-
----
-
-## 🧪 Example Usage
-
-```bash
-curl -X POST "http://localhost:7860/step" \
--H "Content-Type: application/json" \
--d '{"action_type": "meditate"}'
-```
 
 ---
 
@@ -100,12 +78,13 @@ curl -X POST "http://localhost:7860/step" \
 
 ```
 calmiq-openenv/
-├── app.py
+├── server/
+│   └── app.py       # Core FastAPI application & Endpoints
 ├── env/
 │   ├── environment.py
 │   ├── models.py
-│   └── tasks.py
-├── inference.py
+│   └── tasks.py     # Task definitions and strict bounded grader logic
+├── inference.py     # Main Entrypoint with Grader Stdout hooks & LLM Proxy registration
 ├── openenv.yaml
 ├── Dockerfile
 └── README.md
@@ -115,9 +94,12 @@ calmiq-openenv/
 
 ## ⚙️ Setup (Local)
 
+To run locally and connect to your own proxy:
 ```bash
 pip install -r requirements.txt
-python -m uvicorn app:app --reload --port 7860
+export API_KEY="your-proxy-key"
+export API_BASE_URL="your-proxy-endpoint" 
+python inference.py
 ```
 
 ---
@@ -126,27 +108,17 @@ python -m uvicorn app:app --reload --port 7860
 
 ```bash
 docker build -t calmiq .
-docker run -p 7860:7860 calmiq
+docker run -p 7860:7860 -e API_KEY="dummy" -e API_BASE_URL="dummy" calmiq
 ```
-
----
-
-## 🎯 Design Philosophy
-
-CalmIQ models **real-world human decision-making**, where:
-
-* Improving one factor (e.g., mood) may reduce another (energy)
-* Perfect optimization is penalized
-* Agents must learn **balanced strategies**
 
 ---
 
 ## 🏁 Conclusion
 
-CalmIQ OpenEnv is not a toy environment — it is a **behavioral simulation platform** that challenges AI agents to make **realistic, multi-objective decisions** under constraints.
+CalmIQ OpenEnv is a **behavioral simulation platform** that evaluates proxy-integrated agent decision-making under strict multi-objective constraints.
 
 ---
 
 ## 👤 Author
 
-Built for OpenEnv Hackathon 🚀
+Built for **Meta PyTorch Hackathon x Scaler School of Technology** 🚀
