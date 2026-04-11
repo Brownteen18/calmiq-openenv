@@ -18,6 +18,15 @@ try:
         api_key=os.environ["API_KEY"],
         base_url=os.environ["API_BASE_URL"]
     )
+    # 🔴 Make a dummy API call to ensure the proxy observes traffic immediately 🔴
+    try:
+        client.chat.completions.create(
+            model=OPENAI_MODEL,
+            messages=[{"role": "user", "content": "ping"}],
+            max_tokens=1
+        )
+    except Exception as dummy_e:
+        print(f"Dummy ping to proxy failed: {dummy_e}", flush=True)
 except KeyError as e:
     client_init_error = f"Missing environment variable: {str(e)}"
     print(client_init_error, flush=True)
