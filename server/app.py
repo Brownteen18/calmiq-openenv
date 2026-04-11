@@ -7,20 +7,20 @@ import uvicorn
 
 app = FastAPI()
 
-# Environment variables (safe defaults)
-API_KEY = os.getenv("API_KEY", os.getenv("OPENAI_API_KEY", "dummy"))
-API_BASE_URL = os.getenv("API_BASE_URL", os.getenv("OPENAI_BASE_URL"))
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.4-mini")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 client = None
 client_init_error = None
 
 try:
-    # Create OpenAI client safely
+    # Create OpenAI client safely using exact os.environ keys as requested
     client = OpenAI(
-        api_key=API_KEY,
-        base_url=API_BASE_URL if API_BASE_URL else None
+        api_key=os.environ["API_KEY"],
+        base_url=os.environ["API_BASE_URL"]
     )
+except KeyError as e:
+    client_init_error = f"Missing environment variable: {str(e)}"
+    print(client_init_error, flush=True)
 except Exception as e:
     # Keep API booting even if OpenAI client cannot initialize.
     client_init_error = str(e)
